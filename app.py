@@ -110,9 +110,9 @@ if authentication_status:
     data_type = determine_file_type(file)
 
     if data_type:
-        st.write(f"I detected a {data_type} file, what would you like to do?")
+        st.write(f"What would you like to do?")
     else:
-        st.write("Uplod a file to get started.")
+        st.write("Upload a file to get started.")
     # Another reason we don't want this to be our implementation is we are going to hopefully have 10 --> 20 file types in the future. Which will be a lot of ifs.
 
     if data_type == "FASTA":
@@ -131,10 +131,29 @@ if authentication_status:
             # url = get_s3_url(filename=fasta_file.name)
             # upload_content_to_s3(url, fasta_content)
 
-            user_input = st.text_input("Enter some text:")
+            user_input = st.chat_input("What is up?")
 
-            if st.button("Submit"):
+            col1, col2 = st.columns(2)
+
+            if user_input:
                 st.write(run_conversation(user_input, temp_file_path))
+
+            with col1:
+                msa_button = st.button("Perform MSA")
+                mass_button = st.button("What is the mass of the given sequence?")
+            with col2:
+                orf_button = st.button("What are the open reading frames?")
+                restriction_button = st.button("Find restriction sites on the first sequence")
+
+            if msa_button:
+                st.write(run_conversation("Perform MSA on the given FASTA file", temp_file_path))
+            elif mass_button:
+                st.write(run_conversation("What is the mass of the given sequence?", temp_file_path))
+            elif orf_button:
+                    st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
+            elif restriction_button:
+                    st.write(run_conversation("What are restriction sites on the first sequence?", temp_file_path))
+
         else:
             st.write("Please upload a FASTA file.")
 
@@ -146,9 +165,9 @@ if authentication_status:
             url = get_s3_url(filename=pdb_file.name)
             upload_content_to_s3(url, pdb_content)
 
-            user_input = st.text_input("Enter some text:")
+            pdb_user_input = st.chat_input("What is up?")
 
-            if st.button("Submit"):
+            if pdb_user_input:
                 st.write(render_protein_file(pdb_content))
 
         else:
@@ -169,27 +188,41 @@ if authentication_status:
             llm = OpenAI(api_token=os.getenv("OPEN_API_KEY"))
             sdf = SmartDataframe(df, config={"llm": llm})
 
-            user_input = st.text_input("What is your request?")
+            csv_user_input = st.chat_input("What is up?")
 
             url = get_s3_url(
                 filename=f"ChatSession/query-{str(int(time()))}.txt")
-            upload_content_to_s3(url, user_input)
+            upload_content_to_s3(url, csv_user_input)
 
-            if user_input:
-                st.write("User Input:")
-                st.write(user_input)
+            col1, col2 = st.columns(2)
 
-                response = sdf.chat(user_input)
+            with col1:
+                shape_button = st.button("What is the shape of the dataframe?")
+                columns_button = st.button("What are the columns of the dataframe?")
+            with col2:
+                describe_button = st.button("Tell me the descriptive statistics")
+                head_button = st.button("Show the first 5 rows of the dataframe")
 
-                st.write("SmartDataframe Response:")
+            if shape_button:
+                csv_user_input = "What is the shape of the dataframe?"
+                st.write(csv_user_input)
+            elif columns_button:
+                csv_user_input = "What are the columns of the dataframe?"
+                st.write(csv_user_input)
+            elif describe_button:
+                csv_user_input = "Tell me the descriptive statistics of the dataframe"
+                st.write(csv_user_input)
+            elif head_button:
+                csv_user_input = "Show the first 5 rows of the dataframe"
+                st.write(csv_user_input)
+
+            if csv_user_input:
+                st.write(csv_user_input)
+
+                response = sdf.chat(csv_user_input)
                 st.write(response)
 
                 if response == None:
                     st.image("exports/charts/temp_chart.png",
                              caption="Chart Image", use_column_width=True)
-
-        if st.button("Submit"):
-            df_json = df.to_json(orient="split")
-            st.write(run_conversation(user_input, df_json))
-        else:
-            st.write("Please upload a CSV file.")
+            
