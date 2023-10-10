@@ -10,13 +10,13 @@ from pandasai.llm import OpenAI
 import streamlit_authenticator as stauth
 
 # Internal Modules
-from protein_render import render_protein_file
-from ai import run_conversation
-from client import upload_content_to_s3, get_s3_url
+from genesys.protein_render import render_protein_file
+from genesys.ai import run_conversation
+from genesys.client import upload_content_to_s3, get_s3_url
 
 # Standard Library
 import os
-from env import load_dotenv
+from genesys.env import load_dotenv
 import logging
 from io import StringIO
 from time import time
@@ -27,7 +27,7 @@ names = ["Charlie", "Eshcol", "Sandeep", "Raj", "Ashish"]
 usernames = ["charlie", "eshcol", "sandeep", "raj", "ashish"]
 
 # Load hashed passwords
-file_path = Path(__file__).parent / "hashed_pw.pkl"
+file_path = Path("genesys/hashed_pw.pkl")
 with file_path.open("rb") as file:
     hashed_passwords = pickle.load(file)
 
