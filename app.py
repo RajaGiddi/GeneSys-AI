@@ -10,7 +10,7 @@ from pandasai.llm import OpenAI
 import streamlit_authenticator as stauth
 
 # Internal Modules
-from genesys.protein_render import render_protein_file
+from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
 from genesys.client import upload_content_to_s3, get_s3_url
 
