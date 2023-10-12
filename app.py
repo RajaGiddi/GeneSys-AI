@@ -12,6 +12,7 @@ import streamlit_authenticator as stauth
 # Internal Modules
 from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
+from genesys.DNAToolKit import sequence_type
 from genesys.client import upload_content_to_s3, get_s3_url
 
 # Standard Library
@@ -20,6 +21,7 @@ from genesys.env import load_dotenv
 import logging
 from io import StringIO
 from time import time
+import random
 
 # --- USER AUTHENTICATION
 
@@ -138,24 +140,68 @@ if authentication_status:
             if user_input:
                 st.write(run_conversation(user_input, temp_file_path))
 
+            sequence_type = sequence_type(temp_file_path)
+
             with col1:
-                msa_button = st.button("Perform MSA")
-                mass_button = st.button("What is the mass of the given sequence?")
+                msa_button = None
+                orf_button = None
+                restriction_button = None
+                translate_button = None
+                gc_button = None
+                isoelectric_button = None
+                if sequence_type == "DNA":
+                    orf_button = st.button("What are the open reading frames?")
+                    restriction_button = st.button("Find restriction sites on the first sequence")
+                elif sequence_type == "RNA":
+                    translate_button = st.button("Translate the given sequence")
+                    gc_button = st.button("Calculate the GC content(s)")
+                elif sequence_type == "Protein":
+                    msa_button = st.button("Perform MSA")
+                    isoelectric_button = st.button("Calculate isoelectric points")
+
             with col2:
-                orf_button = st.button("What are the open reading frames?")
-                restriction_button = st.button("Find restriction sites on the first sequence")
+                mass_button = None
+                transcription_button = None
+                gc_button = None
+                reverse_button = None
+                complement_button = None
+                phylogenetic_button = None
+
+                if sequence_type == "DNA":
+                    mass_button = st.button("What is the mass of the given sequence?")
+                    transcription_button = st.button("Generate the mRNA transcript")
+                elif sequence_type == "RNA":
+                    reverse_button = st.button("Reverse the given sequence")
+                    complement_button = st.button("Generate the complement(s)")
+                elif sequence_type == "Protein":
+                    mass_button = st.button("What is the mass of the given sequence?")
+                    phylogenetic_button = st.button("Generate a phylogenetic tree")
+                    
 
             if msa_button:
                 st.write(run_conversation("Perform MSA on the given FASTA file", temp_file_path))
             elif mass_button:
                 st.write(run_conversation("What is the mass of the given sequence?", temp_file_path))
             elif orf_button:
-                    st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
+                st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
             elif restriction_button:
-                    st.write(run_conversation("What are restriction sites on the first sequence?", temp_file_path))
-
-        else:
-            st.write("Please upload a FASTA file.")
+                st.write(run_conversation("What are restriction sites on the first sequence?", temp_file_path))
+            elif transcription_button:
+                st.write(run_conversation("Generate the mRNA transcript", temp_file_path))
+            elif translate_button:
+                st.write(run_conversation("Translate the given sequence", temp_file_path))
+            elif gc_button:
+                st.write(run_conversation("Calculate the GC content(s)", temp_file_path))
+            elif reverse_button:
+                st.write(run_conversation("Reverse the given sequence", temp_file_path))
+            elif complement_button:
+                st.write(run_conversation("Generate the complement of the given sequence", temp_file_path))
+            elif isoelectric_button:
+                st.write(run_conversation("What is the isoelectric point of the given sequence?", temp_file_path))
+            elif phylogenetic_button:
+                st.write(run_conversation("Generate a phylogenetic tree", temp_file_path))
+            else:
+                st.write("Please upload a FASTA file.")
 
     elif data_type == "PDB":
         pdb_file = file
