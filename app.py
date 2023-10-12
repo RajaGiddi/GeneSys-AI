@@ -133,7 +133,7 @@ if authentication_status:
             # url = get_s3_url(filename=fasta_file.name)
             # upload_content_to_s3(url, fasta_content)
 
-            user_input = st.chat_input("What is up?")
+            user_input = st.chat_input("")
 
             col1, col2 = st.columns(2)
 
@@ -214,7 +214,7 @@ if authentication_status:
             url = get_s3_url(filename=pdb_file.name)
             upload_content_to_s3(url, pdb_content)
 
-            pdb_user_input = st.chat_input("What is up?")
+            pdb_user_input = st.chat_input("")
 
             if pdb_user_input:
                 st.write(render_protein_file(pdb_content))
@@ -239,7 +239,7 @@ if authentication_status:
             llm = OpenAI(api_token=os.getenv("OPEN_API_KEY"))
             sdf = SmartDataframe(df, config={"llm": llm})
 
-            csv_user_input = st.chat_input("What is up?")
+            csv_user_input = st.chat_input("")
 
             url = get_s3_url(
                 filename=f"ChatSession/query-{str(int(time()))}.txt")
