@@ -200,8 +200,11 @@ if authentication_status:
                 st.write(run_conversation("What is the isoelectric point of the given sequence?", temp_file_path))
             elif phylogenetic_button:
                 st.write(run_conversation("Generate a phylogenetic tree", temp_file_path))
+
+            if user_input == None:
+                st.write("Ask away!")
             else:
-                st.write("Please upload a FASTA file.")
+                st.write(f"Your question: {user_input}")
 
     elif data_type == "PDB":
         pdb_file = file
@@ -215,6 +218,8 @@ if authentication_status:
 
             if pdb_user_input:
                 st.write(render_protein_file(pdb_content))
+
+            st.write(pdb_user_input)
 
         else:
             st.write("Please upload a PDB file.")
