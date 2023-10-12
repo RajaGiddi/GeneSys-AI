@@ -162,7 +162,6 @@ if authentication_status:
             with col2:
                 mass_button = None
                 transcription_button = None
-                gc_button = None
                 reverse_button = None
                 complement_button = None
                 phylogenetic_button = None
@@ -193,7 +192,7 @@ if authentication_status:
             elif gc_button:
                 st.write(run_conversation("Calculate the GC content(s)", temp_file_path))
             elif reverse_button:
-                st.write(run_conversation("Reverse the given sequence", temp_file_path))
+                st.write(run_conversation("Find the reverse complementary", temp_file_path))
             elif complement_button:
                 st.write(run_conversation("Generate the complement of the given sequence", temp_file_path))
             elif isoelectric_button:
