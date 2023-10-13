@@ -12,7 +12,7 @@ import streamlit_authenticator as stauth
 # Internal Modules
 from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
-from genesys.DNAToolKit import sequence_type
+from genesys.DNAToolKit import sequence_type, multiple_sequence_alignment
 from genesys.client import upload_content_to_s3, get_s3_url
 
 # Standard Library
@@ -178,9 +178,11 @@ if authentication_status:
                     
 
             if msa_button:
-                st.write(run_conversation("Perform MSA on the given FASTA file", temp_file_path))
+                msa_result = multiple_sequence_alignment(temp_file_path)
+                if msa_result:
+                    st.code(msa_result, language="text")
             elif mass_button:
-                st.write(run_conversation("What is the mass of the given sequence?", temp_file_path))
+                st.write(run_conversation("Calculate the mass?", temp_file_path))
             elif orf_button:
                 st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
             elif restriction_button:
@@ -196,7 +198,7 @@ if authentication_status:
             elif complement_button:
                 st.write(run_conversation("Generate the complement of the given sequence", temp_file_path))
             elif isoelectric_button:
-                st.write(run_conversation("What is the isoelectric point of the given sequence?", temp_file_path))
+                st.write(run_conversation("What are the isoelectric points?", temp_file_path))
             elif phylogenetic_button:
                 st.write(run_conversation("Generate a phylogenetic tree", temp_file_path))
 
