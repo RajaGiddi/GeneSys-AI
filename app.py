@@ -13,7 +13,8 @@ import streamlit_authenticator as stauth
 from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
 from genesys.DNAToolKit import sequence_type, multiple_sequence_alignment
-from genesys.client import upload_content_to_s3, get_s3_url
+import genesys.client as cli
+import genesys.eventcreator as ec
 
 # Standard Library
 import os
@@ -73,6 +74,16 @@ st.markdown(
 
 name, authentication_status, username = authenticator.login("Login", "main")
 
+# Initialize Session.
+unix_time = str(int(time()))
+session_id = f"session-{unix_time}"
+cur_session = ec.create_session(session_id, username)
+
+if os.name == 'nt':  # Windows
+    temp_dir = os.getenv('TEMP')
+else:  # UNIX-like OS
+    temp_dir = "/tmp"
+
 if authentication_status == False:
     st.error("Username/password is incorrect")
 
@@ -122,9 +133,14 @@ if authentication_status:
             fasta_file = file
 
             if fasta_file is not None:
-                temp_file_path = os.path.join("/tmp", fasta_file.name)
+                filename = f"{str(int(time()))}-{fasta_file.name}"
+                temp_file_path = os.path.join(temp_dir, filename)
                 with open(temp_file_path, "wb") as temp_file:
-                    temp_file.write(fasta_file.read())
+                    fasta_content = fasta_file.read()
+                    temp_file.write(fasta_content)
+
+                    cli.upload_s3(fasta_content, username, filename, "FASTA")    
+                    
 
                 st.success(f"File uploaded successfully!")
 
@@ -139,6 +155,7 @@ if authentication_status:
 
             if user_input:
                 st.write(run_conversation(user_input, temp_file_path))
+                ec.create_message_event(username, cur_session, user_input)
 
             sequence_type = sequence_type(temp_file_path)
 
@@ -176,34 +193,50 @@ if authentication_status:
                     mass_button = st.button("What is the mass of the given sequence?")
                     phylogenetic_button = st.button("Generate a phylogenetic tree")
                     
+            #TODO: This should be a list of buttons with a for loop
+            # There should be some streamlit class which callsback when a button is pressed and we perform an action based of that button. 
+            # This should instead be a dictionary or json structure in another file which has the name of the button & the message of the button. 
+            # This will make it easier to add more buttons and remove others cause you just change the dictionary/json. (List of dictionaries)
 
             if msa_button:
                 msa_result = multiple_sequence_alignment(temp_file_path)
                 if msa_result:
                     st.code(msa_result, language="text")
+                    ec.create_response_event(username, cur_session, msa_result, "code", "text")
             elif mass_button:
                 st.write(run_conversation("Calculate the mass?", temp_file_path))
+                ec.create_message_event(username, cur_session, "Calculate the mass?")
             elif orf_button:
                 st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
+                ec.create_message_event(username, cur_session, "What are the ORFs for the given file?")
             elif restriction_button:
                 st.write(run_conversation("What are restriction sites on the first sequence?", temp_file_path))
+                ec.create_message_event(username, cur_session, "What are restriction sites on the first sequence?")
             elif transcription_button:
                 st.write(run_conversation("Generate the mRNA transcript", temp_file_path))
+                ec.create_message_event(username, cur_session, "Generate the mRNA transcript")
             elif translate_button:
                 st.write(run_conversation("Translate the given sequence", temp_file_path))
+                ec.create_message_event(username, cur_session, "Translate the given sequence")
             elif gc_button:
                 st.write(run_conversation("Calculate the GC content(s)", temp_file_path))
+                ec.create_message_event(username, cur_session, "Calculate the GC content(s)")
             elif reverse_button:
                 st.write(run_conversation("Find the reverse complementary", temp_file_path))
+                ec.create_message_event(username, cur_session, "Find the reverse complementary")
             elif complement_button:
                 st.write(run_conversation("Generate the complement of the given sequence", temp_file_path))
+                ec.create_message_event(username, cur_session, "Generate the complement of the given sequence")
             elif isoelectric_button:
                 st.write(run_conversation("What are the isoelectric points?", temp_file_path))
+                ec.create_message_event(username, cur_session, "What are the isoelectric points?")
             elif phylogenetic_button:
                 st.write(run_conversation("Generate a phylogenetic tree", temp_file_path))
+                ec.create_message_event(username, cur_session, "Generate a phylogenetic tree")
 
             if user_input == None:
                 st.write("Ask away!")
+                ec.create_message_event(username, cur_session, "Ask away!")
             else:
                 st.write(f"Your question: {user_input}")
 
@@ -212,39 +245,42 @@ if authentication_status:
 
         if pdb_file is not None:
             pdb_content = pdb_file.read().decode("utf-8")
-            url = get_s3_url(filename=pdb_file.name)
-            upload_content_to_s3(url, pdb_content)
+
+            pdb_filename = str(int(time()))+pdb_file.name
+            cli.upload_s3(pdb_content, username, pdb_filename, "pdb")
+            ec.create_pdb_event(username, cur_session, pdb_filename, "Visualization")
 
             pdb_user_input = st.chat_input("")
 
             if pdb_user_input:
-                st.write(render_protein_file(pdb_content))
+                st.write(render_protein_file(pdb_content)) # TODO: What is this??????! This section makes zero sense why would we wait for the user to type something? This was also purposefully changed from my original implementation which was much simpler.
 
             st.write(pdb_user_input)
 
         else:
             st.write("Please upload a PDB file.")
+            ec.create_response_event(username, cur_session, "Please upload a PDB file.")
 
     elif data_type == "CSV":
         csv_file = file
 
         if csv_file is not None:
             st.write("CSV file uploaded. Displaying DataFrame:")
+            ec.create_response_event(username, cur_session, "CSV file uploaded. Displaying DataFrame:")
+
             df = pd.read_csv(csv_file)
-
-            url = get_s3_url(filename=csv_file.name)
-            upload_content_to_s3(url, df.to_csv(StringIO()))
-
+            csv_filename = str(int(time()))+csv_file.name
+            cli.upload_s3(df.to_csv(StringIO()), username, csv_filename, "csv")
+            ec.create_csv_event(username, cur_session, csv_filename, df)
+            
             st.dataframe(df)
+            ec.display_csv_event(username, cur_session, csv_filename)
 
             llm = OpenAI(api_token=os.getenv("OPEN_API_KEY"))
             sdf = SmartDataframe(df, config={"llm": llm})
 
             csv_user_input = st.chat_input("")
-
-            url = get_s3_url(
-                filename=f"ChatSession/query-{str(int(time()))}.txt")
-            upload_content_to_s3(url, csv_user_input)
+            ec.create_message_event(username, cur_session, csv_user_input)
 
             col1, col2 = st.columns(2)
 
@@ -255,26 +291,29 @@ if authentication_status:
                 describe_button = st.button("Tell me the descriptive statistics")
                 head_button = st.button("Show the first 5 rows of the dataframe")
 
+            # TODO: These if statements can be simplified so much. I don't think the buttons should be generated in this app. The app file should be a simple loop of user event --> compute event. This architecture is un
             if shape_button:
                 csv_user_input = "What is the shape of the dataframe?"
-                st.write(csv_user_input)
             elif columns_button:
                 csv_user_input = "What are the columns of the dataframe?"
-                st.write(csv_user_input)
             elif describe_button:
                 csv_user_input = "Tell me the descriptive statistics of the dataframe"
-                st.write(csv_user_input)
             elif head_button:
                 csv_user_input = "Show the first 5 rows of the dataframe"
-                st.write(csv_user_input)
+            
+            
+            st.write(csv_user_input)
+            ec.create_message_event(username, cur_session, csv_user_input)
 
             if csv_user_input:
                 st.write(csv_user_input)
+                ec.create_message_event(username, cur_session, csv_user_input)
 
                 response = sdf.chat(csv_user_input)
+                ec.create_message_event(username, cur_session, response)
                 st.write(response)
 
                 if response == None:
                     st.image("exports/charts/temp_chart.png",
                              caption="Chart Image", use_column_width=True)
-            
+                    
