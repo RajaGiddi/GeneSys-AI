@@ -313,7 +313,7 @@ elif data_type == "CSV":
             ec.create_message_event(username, cur_session, csv_user_input)
 
             response = sdf.chat(csv_user_input)
-            ec.create_message_event(username, cur_session, response)
+            # ec.create_message_event(username, cur_session, response)
             st.write(response)
 
             if response == None:
