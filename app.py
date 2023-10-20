@@ -1,29 +1,29 @@
-# External Modules
+# Standard Library
+import os
+from io import StringIO
+from time import time
+import random
 import pickle
-from pathlib import Path
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+logging.info("Loading External Modules")
+# External Modules
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
-
 import streamlit_authenticator as stauth
 
+logging.info("Loading External Modules")
 # Internal Modules
+from genesys.env import load_dotenv
 from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
 from genesys.DNAToolKit import sequence_type, multiple_sequence_alignment
 import genesys.client as cli
 import genesys.eventcreator as ec
-
-
-# Standard Library
-import os
-from genesys.env import load_dotenv
-import logging
-from io import StringIO
-from time import time
-import random
 
 # --- USER AUTHENTICATION
 
@@ -31,7 +31,9 @@ names = ["Charlie", "Eshcol", "Sandeep", "Raj", "Ashish"]
 usernames = ["charlie", "eshcol", "sandeep", "raj", "ashish"]
 
 # Load hashed passwords
+
 file_path = Path("genesys/hashed_pw.pkl")
+logging.info("Load hashed passwords")
 with file_path.open("rb") as file:
     hashed_passwords = pickle.load(file)
 
@@ -75,12 +77,14 @@ st.markdown(
 
 # name, authentication_status, username = authenticator.login("Login", "main")
 username = "charlie"
-# Initialize Session.
 
+logging.info("Create Session for Event Creator")
+# Initialize Session.
 unix_time = str(int(time()))
 session_id = f"session-{unix_time}"
 cur_session = ec.create_session(session_id, username)
 
+logging.info("Loading Temp Directory")
 # Different ways of handling local temp directory. 
 if os.name == 'nt':  # Windows
     temp_dir = os.getenv('TEMP')
@@ -106,10 +110,10 @@ else:  # UNIX-like OS (Mac & Linux)
 #         3. Get an answer.
 #     """
 #     )
-logging.basicConfig(
-    format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
 load_dotenv()
 
+logging.info("Determining File Type")
 def determine_file_type(file):
     if file is not None:
         file_extension = file.name.split('.')[-1].lower()
@@ -121,6 +125,7 @@ def determine_file_type(file):
             return "PDB"
     return None
 
+logging.info("Uploading a File")
 file = st.file_uploader("Drop a file here")
 
 data_type = determine_file_type(file)
@@ -138,6 +143,7 @@ if data_type == "FASTA":
         if fasta_file is not None:
             filename = f"{str(int(time()))}-{fasta_file.name}"
             temp_file_path = os.path.join(temp_dir, filename)
+            logging.info("Opening File path")
             with open(temp_file_path, "wb") as temp_file:
                 fasta_content = fasta_file.read()
                 temp_file.write(fasta_content)
