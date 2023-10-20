@@ -23,7 +23,7 @@ from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
 from genesys.DNAToolKit import sequence_type, multiple_sequence_alignment
 import genesys.client as cli
-import genesys.eventcreator as ec
+# import genesys.eventcreator as ec
 
 # --- USER AUTHENTICATION
 
@@ -82,7 +82,7 @@ logging.info("Create Session for Event Creator")
 # Initialize Session.
 unix_time = str(int(time()))
 session_id = f"session-{unix_time}"
-cur_session = ec.create_session(session_id, username)
+# cur_session = # ec.create_session(session_id, username)
 
 logging.info("Loading Temp Directory")
 # Different ways of handling local temp directory. 
@@ -164,7 +164,7 @@ if data_type == "FASTA":
 
         if user_input:
             st.write(run_conversation(user_input, temp_file_path))
-            ec.create_message_event(username, cur_session, user_input)
+            # ec.create_message_event(username, cur_session, user_input)
 
         sequence_type = sequence_type(temp_file_path)
 
@@ -211,41 +211,41 @@ if data_type == "FASTA":
             msa_result = multiple_sequence_alignment(temp_file_path)
             if msa_result:
                 st.code(msa_result, language="text")
-                ec.create_response_event(username, cur_session, msa_result, "code", "text")
+                # ec.create_response_event(username, cur_session, msa_result, "code", "text")
         elif mass_button:
             st.write(run_conversation("Calculate the mass?", temp_file_path))
-            ec.create_message_event(username, cur_session, "Calculate the mass?")
+            # ec.create_message_event(username, cur_session, "Calculate the mass?")
         elif orf_button:
             st.write(run_conversation("What are the ORFs for the given file?", temp_file_path))
-            ec.create_message_event(username, cur_session, "What are the ORFs for the given file?")
+            # ec.create_message_event(username, cur_session, "What are the ORFs for the given file?")
         elif restriction_button:
             st.write(run_conversation("What are restriction sites on the first sequence?", temp_file_path))
-            ec.create_message_event(username, cur_session, "What are restriction sites on the first sequence?")
+            # ec.create_message_event(username, cur_session, "What are restriction sites on the first sequence?")
         elif transcription_button:
             st.write(run_conversation("Generate the mRNA transcript", temp_file_path))
-            ec.create_message_event(username, cur_session, "Generate the mRNA transcript")
+            # ec.create_message_event(username, cur_session, "Generate the mRNA transcript")
         elif translate_button:
             st.write(run_conversation("Translate the given sequence", temp_file_path))
-            ec.create_message_event(username, cur_session, "Translate the given sequence")
+            # ec.create_message_event(username, cur_session, "Translate the given sequence")
         elif gc_button:
             st.write(run_conversation("Calculate the GC content(s)", temp_file_path))
-            ec.create_message_event(username, cur_session, "Calculate the GC content(s)")
+            # ec.create_message_event(username, cur_session, "Calculate the GC content(s)")
         elif reverse_button:
             st.write(run_conversation("Find the reverse complementary", temp_file_path))
-            ec.create_message_event(username, cur_session, "Find the reverse complementary")
+            # ec.create_message_event(username, cur_session, "Find the reverse complementary")
         elif complement_button:
             st.write(run_conversation("Generate the complement of the given sequence", temp_file_path))
-            ec.create_message_event(username, cur_session, "Generate the complement of the given sequence")
+            # ec.create_message_event(username, cur_session, "Generate the complement of the given sequence")
         elif isoelectric_button:
             st.write(run_conversation("What are the isoelectric points?", temp_file_path))
-            ec.create_message_event(username, cur_session, "What are the isoelectric points?")
+            # ec.create_message_event(username, cur_session, "What are the isoelectric points?")
         elif phylogenetic_button:
             st.write(run_conversation("Generate a phylogenetic tree", temp_file_path))
-            ec.create_message_event(username, cur_session, "Generate a phylogenetic tree")
+            # ec.create_message_event(username, cur_session, "Generate a phylogenetic tree")
 
         if user_input == None:
             st.write("Ask away!")
-            ec.create_message_event(username, cur_session, "Ask away!")
+            # ec.create_message_event(username, cur_session, "Ask away!")
         else:
             st.write(f"Your question: {user_input}")
 
@@ -257,7 +257,7 @@ elif data_type == "PDB":
 
         pdb_filename = str(int(time()))+pdb_file.name
         cli.upload_s3(pdb_content, username, pdb_filename, "pdb")
-        ec.create_pdb_event(username, cur_session, pdb_filename, "Visualization")
+        # ec.create_pdb_event(username, cur_session, pdb_filename, "Visualization")
 
         pdb_user_input = st.chat_input("")
 
@@ -268,28 +268,28 @@ elif data_type == "PDB":
 
     else:
         st.write("Please upload a PDB file.")
-        ec.create_response_event(username, cur_session, "Please upload a PDB file.")
+        # ec.create_response_event(username, cur_session, "Please upload a PDB file.")
 
 elif data_type == "CSV":
     csv_file = file
 
     if csv_file is not None:
         st.write("CSV file uploaded. Displaying DataFrame:")
-        ec.create_response_event(username, cur_session, "CSV file uploaded. Displaying DataFrame:")
+        # ec.create_response_event(username, cur_session, "CSV file uploaded. Displaying DataFrame:")
 
         df = pd.read_csv(csv_file)
         csv_filename = str(int(time()))+csv_file.name
         cli.upload_s3(df.to_csv(StringIO()), username, csv_filename, "csv")
-        ec.create_csv_event(username, cur_session, csv_filename, df)
+        # ec.create_csv_event(username, cur_session, csv_filename, df)
         
         st.dataframe(df)
-        ec.display_csv_event(username, cur_session, csv_filename)
+        # ec.display_csv_event(username, cur_session, csv_filename)
 
         llm = OpenAI(api_token=os.getenv("OPEN_API_KEY"))
         sdf = SmartDataframe(df, config={"llm": llm})
 
         csv_user_input = st.chat_input("")
-        ec.create_message_event(username, cur_session, csv_user_input)
+        # # ec.create_message_event(username, cur_session, csv_user_input)
 
         col1, col2 = st.columns(2)
 
@@ -312,14 +312,14 @@ elif data_type == "CSV":
         
         
         st.write(csv_user_input)
-        ec.create_message_event(username, cur_session, csv_user_input)
+        # ec.create_message_event(username, cur_session, csv_user_input)
 
         if csv_user_input:
             st.write(csv_user_input)
-            ec.create_message_event(username, cur_session, csv_user_input)
+            # ec.create_message_event(username, cur_session, csv_user_input)
 
             response = sdf.chat(csv_user_input)
-            # ec.create_message_event(username, cur_session, response)
+            # # ec.create_message_event(username, cur_session, response)
             st.write(response)
 
             if response == None:
