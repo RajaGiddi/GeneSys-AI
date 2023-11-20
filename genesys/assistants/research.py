@@ -1,4 +1,4 @@
-from genesys.assistants.ra import *
+from genesys.assistants.base import *
 import os
 
 literature_tools = [
