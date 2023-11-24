@@ -23,6 +23,9 @@ from genesys.visuals import render_protein_file
 from genesys.ai import run_conversation
 from genesys.DNAToolKit import sequence_type, multiple_sequence_alignment
 import genesys.client as cli
+from genesys.assistants import research_assistant
+from genesys.openai import openai_client as client
+
 # import genesys.eventcreator as ec
 
 # --- USER AUTHENTICATION
@@ -74,6 +77,18 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+st.title('Streamlit Sidebar with Card Output')
+
+st.sidebar.title('Input Sidebar')
+
+user_input = st.sidebar.text_input("Enter your input here")
+
+
+
+with st.sidebar.container():
+    st.sidebar.markdown("### Your Input")
+    st.sidebar.text_area("Input entered:", user_input, height=100)
 
 # name, authentication_status, username = authenticator.login("Login", "main")
 username = "charlie"
