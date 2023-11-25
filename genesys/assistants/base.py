@@ -57,7 +57,7 @@ class BaseAssistant:
                 ret = function_to_call(**args)
                 tool_outputs.append({
                     "tool_call_id": action.id,
-                    "output": json.dumps(ret)
+                    "output": json.dumps(str(ret))
                 })
             else:
                 raise ValueError(f"Unknown tool: {fn_name}")
