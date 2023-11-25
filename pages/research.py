@@ -3,12 +3,12 @@ from genesys.assistants import research_assistant
 from genesys.openai import openai_client as client
 import time
 
-st.title("Insight")
+st.title("Research")
 
 if "thread" not in st.session_state:
     st.session_state.thread = client.beta.threads.create()
     
-for message in client.beta.threads.messages.list(st.session_state.thread.id).data:
+for message in client.beta.threads.messages.list(st.session_state.thread.id).data[::-1]:
     with st.chat_message(message.role):
         st.markdown(message.content[0].text.value)
 
