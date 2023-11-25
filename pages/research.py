@@ -7,8 +7,10 @@ st.title("Research")
 
 if "thread" not in st.session_state:
     st.session_state.thread = client.beta.threads.create()
-    
-for message in client.beta.threads.messages.list(st.session_state.thread.id).data[::-1]:
+
+for message in client.beta.threads.messages.list(
+    st.session_state.thread.id, order="asc"
+).data:
     with st.chat_message(message.role):
         st.markdown(message.content[0].text.value)
 
@@ -43,6 +45,7 @@ if prompt := st.chat_input("Say something"):
             elif run.status == "completed":
                 break
 
-        messages = client.beta.threads.messages.list(thread_id=run.thread_id).data
-            
-        st.markdown(messages[-1].content[0].text.value)
+        res = client.beta.threads.messages.list(thread_id=run.thread_id, limit=1)
+
+        if (content := res.data[0].content[0]).type == "text":
+            st.markdown(content.text.value)
