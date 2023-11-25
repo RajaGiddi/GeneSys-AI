@@ -205,7 +205,7 @@ def mass_calculator(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
 
 # TO DO : revist this function
 
-
+# Needs to be moved to visuals
 def open_reading_frames(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
     Find and translate all open reading frames (ORFs) in a DNA sequence.
@@ -285,7 +285,7 @@ def find_recognition_sites(dna_sequence, enzyme_name):
                          for site in cut_sites]
     return recognition_sites
 
-
+# Needs to be moved to visuals
 def restriction_sites(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
     Provides the respective restriction enzyme for each restriction site location in a DNA sequence.
@@ -333,7 +333,7 @@ def isoelectric_point(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
 
     return isoelectric_points
 
-
+# Needs to be moved to visuals
 def multiple_sequence_alignment(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
     Perform multiple sequence alignment on a FASTA file.
@@ -354,7 +354,7 @@ def multiple_sequence_alignment(filepath: Annotated[str, Doc("Path to the FASTA 
 
 # REVISIT THIS FUNCTION WITH CHARLIE
 
-
+# Needs to be moved to visuals
 def detect_snps(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
     Detect singular nucleotide polymorphisms (SNPs) between multiple DNA sequences in a FASTA file.
@@ -381,7 +381,7 @@ def detect_snps(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
 
     return snps
 
-
+# Needs to be moved to visuals
 def find_motifs(
     filepath: Annotated[str, Doc("Path to the FASTA file.")],
     motif: Annotated[str, Doc("Motif to search for.")]
