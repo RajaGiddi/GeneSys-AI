@@ -1,32 +1,37 @@
 import json
 from types import ModuleType
-from typing import NotRequired, Unpack
+from typing import NotRequired, Unpack, cast
 
-from openai.types.beta.assistant import Assistant
 from openai.types.beta.assistant_create_params import AssistantCreateParams
 from openai.types.beta.threads.run import Run
+from openai.types.beta.assistant import Assistant
+from openai.types.beta.assistant_update_params import AssistantUpdateParams
 
 from ..utils import gen_tools_schema
-from ..openai import openai_client
+from ..openai import openai_client as client
 
-DEFAULT_MODEL = "gpt-4-1106-preview"
-
-class _BaseAssistantCreateParams(AssistantCreateParams):
+class _BaseAssistantInitParams(AssistantCreateParams):
     model: NotRequired[str]
-
-def create_base_assistant(**kwargs: Unpack[_BaseAssistantCreateParams]) -> Assistant:
-    kwargs.setdefault("model", DEFAULT_MODEL)
-    return openai_client.beta.assistants.create(**kwargs)
+    functions_module: NotRequired[ModuleType]
+    """A module containing functions for the assistant to call."""
 
 class BaseAssistant:
     model = "gpt-4-1106-preview"
 
-    def __init__(self, tools_module: ModuleType, **kwargs: Unpack[_BaseAssistantCreateParams]):
-        self.tools = tools_module.__dict__
+    def __init__(self, **kwargs: Unpack[_BaseAssistantInitParams]):
         kwargs.setdefault("model", self.model)
-        self.assistant = create_base_assistant(**kwargs)
+
+        tools = kwargs.setdefault("tools", [])
+
+        if mod := kwargs.pop("functions_module", None):
+            self.functions = mod.__dict__
+            tools.extend(gen_tools_schema(mod))
+
+        self.assistant = client.beta.assistants.create(
+            **cast(AssistantCreateParams, kwargs)
+        )
         
-    def __getattr__(self, name: str) -> Assistant:
+    def __getattr__(self, name: str):
         return getattr(self.assistant, name)
 
     def __repr__(self) -> str:
@@ -41,18 +46,23 @@ class BaseAssistant:
         return hash(self.assistant.id)
 
     def delete(self):
-        return openai_client.beta.assistants.delete(self.assistant.id)
+        return client.beta.assistants.delete(self.assistant.id)
 
-    # HACK: AssistantCreateParams and AssistantUpdateParams are the same
-    def update(self, **kwargs: Unpack[_BaseAssistantCreateParams]) -> Assistant:
-        return openai_client.beta.assistants.update(**kwargs)
+    def update(self, **kwargs: Unpack[AssistantUpdateParams]) -> Assistant:
+        return client.beta.assistants.update(self.assistant.id, **kwargs)
 
     def get_tool_outputs(self, run: Run):
-        tool_outputs = []
+        assert(
+            run.status == "requires_action"
+            and run.required_action is not None
+            and run.required_action.type == "submit_tool_outputs"
+        )
         
+        tool_outputs = []
+
         for action in run.required_action.submit_tool_outputs.tool_calls:
-            if (fn_name := action.function.name) in self.tools:
-                function_to_call = self.tools[fn_name]
+            if (fn_name := action.function.name) in self.functions:
+                function_to_call = self.functions[fn_name]
                 args = json.loads(action.function.arguments)
                 ret = function_to_call(**args)
                 tool_outputs.append({
