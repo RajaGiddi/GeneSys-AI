@@ -2,7 +2,6 @@ import pytest
 import time
 from genesys.openai import openai_client as client
 from genesys.assistants import research_assistant
-from genesys.assistants.ra import *
 
 
 def test_assistant_conversation():
