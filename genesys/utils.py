@@ -4,7 +4,7 @@ from types import GenericAlias, ModuleType, UnionType
 from typing import Annotated, Any, Callable
 
 from typing_extensions import Doc
-
+from openai.types.beta.assistant_create_params import Tool
 
 def _lenient_issubclass(cls: Any, class_or_tuple: Any) -> bool:
     """
@@ -78,7 +78,7 @@ def gen_function_schema(func: Callable[..., Any]) -> dict[str, Any]:
 
     return schema
 
-def gen_tools_schema(mod: ModuleType) -> list[dict]:
+def gen_tools_schema(mod: ModuleType) -> list[Tool]:
     tools = []
 
     for name, fn in inspect.getmembers(mod):
