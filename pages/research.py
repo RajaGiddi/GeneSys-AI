@@ -5,28 +5,44 @@ import time
 
 st.title("Research")
 
-if "research_thread" not in st.session_state:
-    st.session_state.research_thread = client.beta.threads.create()
+if "thread" not in st.session_state:
+    st.session_state.thread = client.beta.threads.create()
 
 for message in client.beta.threads.messages.list(
-    st.session_state.research_thread.id, order="asc"
+    st.session_state.thread.id, order="asc"
 ).data:
-    with st.chat_message(message.role):
-        st.markdown(message.content[0].text.value)
+    role = message.role
+    content = message.content[0]
+    text_value: str = ""
+
+    if content.type == "text":
+        text_value = content.text.value
+
+    if role == "assistant" and message.assistant_id == research_assistant.id:
+        with st.chat_message(role):
+            st.markdown(text_value)
+    elif (
+            role == "user"
+            and isinstance(message.metadata, dict)
+            and message.metadata["page"] == "research"
+        ):
+        with st.chat_message(role):
+            st.markdown(text_value)
 
 if prompt := st.chat_input("Say something"):
     with st.chat_message("user"):
         st.markdown(prompt)
         client.beta.threads.messages.create(
-            st.session_state.research_thread.id,
+            st.session_state.thread.id,
             role="user",
             content=prompt,
+            metadata={"page": "research"},
         )
         
 
     with st.chat_message("assistant"):
         run = client.beta.threads.runs.create(
-            thread_id=st.session_state.research_thread.id,
+            thread_id=st.session_state.thread.id,
             assistant_id=research_assistant.id,
         )
 
