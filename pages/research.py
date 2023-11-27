@@ -29,23 +29,25 @@ if prompt := st.chat_input("Say something"):
             thread_id=st.session_state.research_thread.id,
             assistant_id=research_assistant.id,
         )
-        while True:
-            time.sleep(1)
-            run = client.beta.threads.runs.retrieve(
-                run_id=run.id, thread_id=run.thread_id
-            )
-            
-            if run.status == "requires_action" and run.required_action is not None:
-                tool_outputs = research_assistant.get_tool_outputs(run)
-                res = client.beta.threads.runs.submit_tool_outputs(
-                    run_id=run.id,
-                    thread_id=run.thread_id,
-                    tool_outputs=tool_outputs,
+
+        with st.spinner('Waiting for a response...'):
+            while True:
+                time.sleep(1)
+                run = client.beta.threads.runs.retrieve(
+                    run_id=run.id, thread_id=run.thread_id
                 )
-            elif run.status == "completed":
-                break
+                
+                if run.status == "requires_action" and run.required_action is not None:
+                    tool_outputs = research_assistant.get_tool_outputs(run)
+                    res = client.beta.threads.runs.submit_tool_outputs(
+                        run_id=run.id,
+                        thread_id=run.thread_id,
+                        tool_outputs=tool_outputs,
+                    )
+                elif run.status == "completed":
+                    break
 
-        res = client.beta.threads.messages.list(thread_id=run.thread_id, limit=1)
+            res = client.beta.threads.messages.list(thread_id=run.thread_id, limit=1)
 
-        if (content := res.data[0].content[0]).type == "text":
-            st.markdown(content.text.value)
+            if (content := res.data[0].content[0]).type == "text":
+                st.markdown(content.text.value)

@@ -35,29 +35,31 @@ if prompt := st.chat_input("Say something"):
             """
         )
         
-
+    
     with st.chat_message("assistant"):
         run = client.beta.threads.runs.create(
             thread_id=st.session_state.analysis_thread.id,
             assistant_id=bioinformatician_assistant.id,
         )
-        while True:
-            time.sleep(1)
-            run = client.beta.threads.runs.retrieve(
-                run_id=run.id, thread_id=run.thread_id
-            )
-            
-            if run.status == "requires_action" and run.required_action is not None:
-                tool_outputs = bioinformatician_assistant.get_tool_outputs(run)
-                res = client.beta.threads.runs.submit_tool_outputs(
-                    run_id=run.id,
-                    thread_id=run.thread_id,
-                    tool_outputs=tool_outputs,
+
+        with st.spinner('Waiting for a response...'):
+            while True:
+                time.sleep(1)
+                run = client.beta.threads.runs.retrieve(
+                    run_id=run.id, thread_id=run.thread_id
                 )
-            elif run.status == "completed":
-                break
+                
+                if run.status == "requires_action" and run.required_action is not None:
+                    tool_outputs = bioinformatician_assistant.get_tool_outputs(run)
+                    res = client.beta.threads.runs.submit_tool_outputs(
+                        run_id=run.id,
+                        thread_id=run.thread_id,
+                        tool_outputs=tool_outputs,
+                    )
+                elif run.status == "completed":
+                    break
 
-        messages = client.beta.threads.messages.list(thread_id=run.thread_id).data
+            messages = client.beta.threads.messages.list(thread_id=run.thread_id).data
 
-        if (content := messages[0].content[0]).type == "text":
-            st.markdown(content.text.value)
+            if (content := messages[0].content[0]).type == "text":
+                st.markdown(content.text.value)
