@@ -8,7 +8,7 @@ research_assistant = BaseAssistant(
     functions_module=pubmed,
     name="Research Assistant",
     description="A research assistant to help you with your work.",
-    instructions="Help find papers based on query. You should always return ",
+    instructions="Help find papers based on query.",
 )
 
 bioinformatician_assistant = BaseAssistant(
