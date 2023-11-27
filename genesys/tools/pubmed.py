@@ -1,5 +1,8 @@
+from typing import Annotated
 import requests
 import xml.etree.ElementTree as ET
+
+from typing_extensions import Doc
 
 base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
@@ -10,11 +13,11 @@ def _parse_search_results(search_result: str) -> list[str]:
     root = ET.fromstring(search_result)
     return [id_tag.text for id_tag in root.findall('.//IdList/Id')]
 
-def fetch_papers(query: str, max_results: int = 10) -> list:
-    """
-    Fetches a list of papers from PubMed based on the given query.
-    This function now also returns the abstract of each paper.
-    """
+def fetch_papers(
+        query: Annotated[str, Doc("Search query to submit to PubMed.")],
+        max_results: int = 10
+    ):
+    """Search PubMed and get the title, abstract, and URL for each search result."""
 
     search_url = f"{base_url}esearch.fcgi?db=pubmed&term={query}&retmode=xml"
     search_response = requests.get(search_url)
@@ -29,9 +32,13 @@ def fetch_papers(query: str, max_results: int = 10) -> list:
     for article in root.findall('.//PubmedArticle'):
         pmid = article.find('.//PMID').text
         title = article.find('.//ArticleTitle').text
+        abstract = article.find('.//Abstract/AbstractText').text
 
-        abstract = article.find('.//Abstract/AbstractText')
-        abstract_text = abstract.text if abstract is not None else "No abstract available"
-        papers.append((pmid, title, abstract_text))
+        papers.append({
+            "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+            "pubmed_id": pmid,
+            "title": title,
+            "abstract": abstract,
+        })
 
     return papers
