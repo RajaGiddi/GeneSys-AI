@@ -5,11 +5,11 @@ import time
 
 st.title("Research")
 
-if "thread" not in st.session_state:
-    st.session_state.thread = client.beta.threads.create()
+if "research_thread" not in st.session_state:
+    st.session_state.research_thread = client.beta.threads.create()
 
 for message in client.beta.threads.messages.list(
-    st.session_state.thread.id, order="asc"
+    st.session_state.research_thread.id, order="asc"
 ).data:
     with st.chat_message(message.role):
         st.markdown(message.content[0].text.value)
@@ -18,7 +18,7 @@ if prompt := st.chat_input("Say something"):
     with st.chat_message("user"):
         st.markdown(prompt)
         client.beta.threads.messages.create(
-            st.session_state.thread.id,
+            st.session_state.research_thread.id,
             role="user",
             content=prompt,
         )
@@ -26,12 +26,12 @@ if prompt := st.chat_input("Say something"):
 
     with st.chat_message("assistant"):
         run = client.beta.threads.runs.create(
-            thread_id=st.session_state.thread.id,
+            thread_id=st.session_state.research_thread.id,
             assistant_id=research_assistant.id,
         )
         while True:
             time.sleep(1)
-            run  = client.beta.threads.runs.retrieve(
+            run = client.beta.threads.runs.retrieve(
                 run_id=run.id, thread_id=run.thread_id
             )
             
