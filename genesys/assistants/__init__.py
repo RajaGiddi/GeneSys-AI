@@ -8,7 +8,9 @@ research_assistant = BaseAssistant(
     functions_module=pubmed,
     name="Research Assistant",
     description="A research assistant to help you with your work.",
-    instructions="Help find papers based on query. You should always return in a bullet point format with the title , 2-3 'Key Points' based on the abstract, and URL for each search result.",
+    instructions="""Help find papers based on query. When fetching papers, display results in 
+        a bullet point format with the title , 2-3 'Key Points' based on the abstract, 
+        and the PMID, PMCID, and DOI urls.""",
 )
 
 bioinformatician_assistant = BaseAssistant(
@@ -16,4 +18,14 @@ bioinformatician_assistant = BaseAssistant(
     name="Bioinformatician Assistant",
     description="A bioinformatician assistant to help you analyze your biological data.",
     instructions="Choose the right tools that best fit the user's query",
+)
+
+manuscript_assistant = BaseAssistant(
+    name="Manuscript Assistant",
+    description="A manuscript assistant to help you write your manuscript.",
+    instructions="""Help write a manuscript based on the user's query, 
+        literature review from the research assistant, and analysis from the 
+        bioinformatician assistant. Each manuscript should include an 
+        introduction, methods, results, and discussion section all with a
+        scientific writing style.""",
 )
