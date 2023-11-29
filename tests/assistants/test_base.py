@@ -24,3 +24,18 @@ def test_assistant_with_functions():
     retrieved_assistant = client.beta.assistants.retrieve(test_assistant.id)
     print(retrieved_assistant.model_dump_json(indent=2))
     assert retrieved_assistant.id == test_assistant.id
+
+def test_assistant_with_multiple_mods():
+    from time import time
+    from genesys.tools import pubmed, sequence
+
+    test_assistant = BaseAssistant(
+        name="Another Test Assistant",
+        description="An assistant with a lot of functions.",
+        functions_modules=[pubmed, sequence],
+        metadata={"test": True, "time": time()}
+    )
+
+    retrieved_assistant = client.beta.assistants.retrieve(test_assistant.id)
+    print(retrieved_assistant.model_dump_json(indent=2))
+    assert retrieved_assistant.id == test_assistant.id

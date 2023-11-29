@@ -1,6 +1,6 @@
 import json
 from types import ModuleType
-from typing import NotRequired, Unpack, cast
+from typing import Any, NotRequired, Unpack, cast
 
 from openai.types.beta.assistant_create_params import AssistantCreateParams
 from openai.types.beta.threads.run import Run
@@ -12,8 +12,11 @@ from ..openai import openai_client as client
 
 class _BaseAssistantInitParams(AssistantCreateParams):
     model: NotRequired[str]
+
     functions_module: NotRequired[ModuleType]
     """A module containing functions for the assistant to call."""
+
+    functions_modules: NotRequired[list[ModuleType]]
 
 class BaseAssistant:
     model = "gpt-4-1106-preview"
@@ -23,9 +26,16 @@ class BaseAssistant:
 
         tools = kwargs.setdefault("tools", [])
 
+        self.modules: list[dict[str, Any]] = []
+
         if mod := kwargs.pop("functions_module", None):
-            self.functions = mod.__dict__
+            self.modules.append(mod.__dict__)
             tools.extend(gen_tools_schema(mod))
+
+        if mods := kwargs.pop("functions_modules", None):
+            for mod in mods:
+                self.modules.append(mod.__dict__)
+                tools.extend(gen_tools_schema(mod))
 
         self.assistant = client.beta.assistants.create(
             **cast(AssistantCreateParams, kwargs)
@@ -61,16 +71,17 @@ class BaseAssistant:
         tool_outputs = []
 
         for action in run.required_action.submit_tool_outputs.tool_calls:
-            if (fn_name := action.function.name) in self.functions:
-                function_to_call = self.functions[fn_name]
-                args = json.loads(action.function.arguments)
-                ret = function_to_call(**args)
-                tool_outputs.append({
-                    "tool_call_id": action.id,
-                    "output": json.dumps(str(ret))
-                })
-            else:
-                raise ValueError(f"Unknown tool: {fn_name}")
+            for mod in self.modules:
+                if (fn_name := action.function.name) in mod:
+                    function_to_call = mod[fn_name]
+                    args = json.loads(action.function.arguments)
+                    ret = function_to_call(**args)
+                    tool_outputs.append({
+                        "tool_call_id": action.id,
+                        "output": json.dumps(str(ret))
+                    })
+                else:
+                    raise ValueError(f"Unknown tool: {fn_name}")
                 
         return tool_outputs
             
