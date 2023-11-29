@@ -8,9 +8,22 @@ research_assistant = BaseAssistant(
     functions_module=pubmed,
     name="Research Assistant",
     description="A research assistant to help you with your work.",
-    instructions="""Help find papers based on query. When fetching papers, display results in 
-        a bullet point format with the title , 2-3 'Key Points' based on the abstract, 
-        and the PMID, PMCID, and DOI urls Return the query you used.""",
+    instructions="""
+        Help search for papers relavant to the user's research goal and if
+        asked, help users understand the papers by summarizing and explaining
+        them.
+
+        When displaying search results, use an ordered list and have each item in the list follow this format:
+
+        - **Title**: the title of the paper
+        - **Abstract**:
+          - a key points from the abstract
+          - use as many bullet points as needed
+        - **Links**:
+          - any links or URLs
+        - **Other**:
+          - other information like PMCIDs or DOIs
+    """,
 )
 
 bioinformatician_assistant = BaseAssistant(
