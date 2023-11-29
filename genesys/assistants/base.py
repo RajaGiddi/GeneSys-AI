@@ -80,6 +80,7 @@ class BaseAssistant:
                         "tool_call_id": action.id,
                         "output": json.dumps(str(ret))
                     })
+                    break
                 else:
                     raise ValueError(f"Unknown tool: {fn_name}")
                 
