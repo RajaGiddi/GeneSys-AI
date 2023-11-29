@@ -33,7 +33,7 @@ def sequence_type(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
 
 def count_occurences(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
-    Count the number of nucleotides for each DNA/RNA sequence or amino acids for each protein in a FASTA file.
+    Count the number of nucleotides for each DNA/RNA sequence or amino acids for each protein sequence in a FASTA file.
     """
 
     if sequence_type(filepath) == "Unknown sequence type":
@@ -352,7 +352,36 @@ def multiple_sequence_alignment(filepath: Annotated[str, Doc("Path to the FASTA 
 
     return MultipleSeqAlignment(aligned_seqs)
 
-# REVISIT THIS FUNCTION WITH CHARLIE
+def MSA_variance(filepath: str):
+    """
+    Prints all sequences sorted by their BLOSUM score differences from the base sequence.
+
+    Some notes on BLOSUM scores:
+    - High Positive BLOSUM Scores: Indicate common, likely conserved amino acid substitutions in critical protein function areas.
+    - Moderate Positive BLOSUM Scores: Suggest somewhat common substitutions, possibly less conserved, in regions allowing some functional variability.
+    - Low Positive BLOSUM Scores: Reflect less common, potentially less conserved substitutions in more adaptable or less crucial protein areas.
+    - Neutral BLOSUM Scores: Imply substitutions with neutral impact, neither common nor rare, and not strongly conserved or divergent, possibly without significant functional effect.
+    - Negative BLOSUM Scores: Indicate rare amino acid substitutions, likely less favorable for protein function or structure, occurring in regions less critical for the protein's function or representing evolutionary divergence.
+    """
+
+    from Bio.Align import substitution_matrices
+    
+    alignment = multiple_sequence_alignment(filepath)
+    base_seq = alignment[0].seq
+    blosum62 = substitution_matrices.load("BLOSUM62")
+    difference_scores = {}
+
+    for record in alignment:
+        score = 0
+        for base, other in zip(base_seq, record.seq):
+            if base != other:
+                score += blosum62[(base, other)]
+        difference_scores[record.id] = score
+
+    # Sorting sequences by BLOSUM score in descending order
+    sorted_sequences = sorted(difference_scores.items(), key=lambda x: x[1], reverse=True)
+
+    return sorted_sequences
 
 # Needs to be moved to visuals
 def detect_snps(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
@@ -396,3 +425,5 @@ def find_motifs(
         motif_positions[record.id] = matches
 
     return motif_positions
+
+
