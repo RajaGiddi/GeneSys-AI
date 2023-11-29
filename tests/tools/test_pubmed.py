@@ -3,7 +3,8 @@ This testing module is to make sure that the prompts and the function
 descriptions defined in `tools.pubmed` results in the behavior that we expect.
 """
 
-from genesys.tools.pubmed import fetch_papers
+from genesys.tools.pubmed import fetch_papers, search_pmc
+import json
 import time
 
 def test_perform_search():
@@ -18,3 +19,7 @@ def test_perform_search():
         assert "pubmed_id" in item
         assert "title" in item
         assert "abstract" in item
+
+def test_search_pmc():
+    result = search_pmc("cancer")
+    print(json.dumps(result, indent=2))
