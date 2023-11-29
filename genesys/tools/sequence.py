@@ -4,6 +4,9 @@ import re
 from typing import Annotated
 from typing_extensions import Doc
 
+import streamlit as st
+import pandas as pd
+import numpy as np
 from Bio import AlignIO, Restriction, SeqIO
 from Bio.Align import MultipleSeqAlignment
 from Bio.Seq import Seq
@@ -120,19 +123,23 @@ def reverseComplementary(filepath: Annotated[str, Doc("Path to the FASTA file.")
 
 def gc_content(filepath: Annotated[str, Doc("Path to the FASTA file.")]):
     """
-    Calculate the GC content of a DNA sequence.
+    Calculate the GC content of a DNA sequence and display it to the user.
     """
+
+    if sequence_type(filepath) == "Protein":
+        raise ValueError("Unable to perform operation: Not a DNA sequence")
 
     sequences = SeqIO.to_dict(SeqIO.parse(filepath, "fasta"))
     gc_contents = {}
 
     for seq_id, seq_record in sequences.items():
-        if sequence_type(filepath) == "Protein":
-            raise ValueError("Unable to perform operation: Not a DNA sequence")
-
         sequence = seq_record.seq
         gc_content = round(gc_fraction(sequence) * 100, 2)
         gc_contents[seq_id] = gc_content
+
+    df = pd.Series(gc_contents, name="Content")
+    df.index.name = "Sequence"
+    st.bar_chart(df)
 
     return gc_contents
 
