@@ -10,14 +10,14 @@ research_assistant = BaseAssistant(
     description="A research assistant to help you with your work.",
     instructions="""Help find papers based on query. When fetching papers, display results in 
         a bullet point format with the title , 2-3 'Key Points' based on the abstract, 
-        and the PMID, PMCID, and DOI urls.""",
+        and the PMID, PMCID, and DOI urls Return the query you used.""",
 )
 
 bioinformatician_assistant = BaseAssistant(
     functions_module=sequence,
     name="Bioinformatician Assistant",
     description="A bioinformatician assistant to help you analyze your biological data.",
-    instructions="Choose the right tools that best fit the user's query",
+    instructions="Choose the right tools that best fit the user's query. Provide your intepretation of the results.",
 )
 
 manuscript_assistant = BaseAssistant(
