@@ -1,96 +1,58 @@
 # GeneSys AI
 
-GeneSys AI is an innovative and versatile tool designed to empower bioinformaticians, researchers, clinicians, and students in their genomics and bioinformatics endeavors. This chatbot harnesses the power of GPT (Generative Pre-trained Transformer) technology to provide a user-friendly, conversational interface for a wide range of genomic analysis tasks.
+A conversational interface to a deterministic bioinformatics toolkit.
 
-## Key Features:
+GeneSys lets biologists, clinicians, and students run genomic analyses in natural
+language without writing code. The design point is that the language model never
+performs the analysis. It selects and parameterizes a function; the function runs
+real bioinformatics code and returns its output. Every result is a verifiable
+operation, not generated text.
 
-FASTA File Processing: Users can easily upload FASTA files containing DNA or protein sequences for various analytical tasks.
+The routing layer is hand-written. GeneSys was built before agent frameworks and
+before the Model Context Protocol existed, and it solves the same problem MCP now
+standardizes: giving a language model reliable, typed access to domain tools.
 
-FASTA File Processing: Users can easily upload FASTA files containing DNA or protein sequences for various analytical tasks.
+## Architecture
 
-Genomic Processing: The chatbot offers an extensive suite of bioinformatics functions, including:
+- **Dispatch layer** — parses intent from conversation, selects a function from the
+  DNA Tool Kit, extracts and validates arguments, and returns structured results.
+- **DNA Tool Kit** — the analysis functions below. Each is independently callable
+  and testable without the model in the loop.
+- **Ingestion** — FASTA/FASTQ upload for DNA and protein sequences; tabular data
+  (CSV, PDF, dataframes) for general analysis.
 
-Sequence translation: Converts DNA sequences into protein sequences.
-Transcription: Transcribes DNA sequences into RNA sequences.
-Restriction site detection: Identifies reverse palindromic DNA sequences, often indicating potential cutting sites for restriction enzymes.
-Multiple Sequence Alignment: Aligns multiple sequences for comparative analysis.
-SNP detection: Detects Single Nucleotide Polymorphisms (SNPs) in DNA sequences.
-Primer Design Automation: Automates the design of primers for PCR experiments.
-BLAST searches: Implements various BLAST algorithms for sequence similarity searches.
+## Implemented
 
-## General Data (.csv, .pdf, tabulated data, etc):
+**Sequence analysis**
+- Complementary sequence computation
+- mRNA transcription; mRNA-to-protein translation
+- Nucleotide counting; GC content, including per-window GC for a specified *k*
+- Hamming distance between equal-length sequences
+- Open reading frame (ORF) identification with translation to protein
 
-- [x] Display the dataframe
-- [x] Create and edit dataframes
-    - [x] Creating new columns and rows
-    - [x] Deleting columns and rows
-    - [x] Renaming columns and rows
-    - [x] Merging Dataframes: Implement dataframe merging or joining operations (e.g., inner, outer, left, right joins).
-    - [x] Sorting Dataframes: Allow users to sort dataframes based on one or more columns.
-    - [x] Aggregating Data: Provide functions for data aggregation and group-by operations.
-    - [ ] Pivot Tables: Support the creation of pivot tables for summarizing and reshaping data.
-    - [x] Filtering Data: Enable users to filter data based on specific conditions or criteria.
-    - [ ] Data Transposition: Allow users to transpose dataframes (rows become columns, and vice versa).
-    - [x] Data Type Conversion: Support conversion between different data types for dataframe columns.
-    - [x] Data Sampling: Allow users to randomly sample data from dataframes.
-- [x] Data Visualization
-    - [ ] Implement data visualization tools for exploring and visualizing datasets.
-    - [x] Generate interactive charts and plots.
-- [x] Statistical Analysis
-    - [x] Provide statistical analysis functions for data summary and hypothesis testing.
-    - [x] Calculate descriptive statistics (mean, median, standard deviation, etc.).
-- [ ] Export and Import
-    - [ ] Enable data export in various formats (CSV, Excel, JSON, etc.).
-    - [ ] Support data import from external sources and formats.
+**Structural and comparative**
+- Multiple sequence alignment
+- Phylogenetic tree generation from MSA
+- SNP detection
+- Motif finding
+- Restriction site detection, with suggested restriction enzymes
+- Protein mass calculation from amino acid composition
+- 3D protein structure visualization
 
-### Long Term Implementations:
-- [ ] Machine Learning Integration
-    - [ ] Incorporate machine learning algorithms for predictive modeling and classification.
-    - [ ] Allow users to train and evaluate machine learning models on their data.
-- [ ] Data Cleaning
-    - [ ] Implement data cleaning and preprocessing functions (e.g., handling missing values, outliers).
-    - [ ] Offer data imputation techniques.
-- [ ] Time Series Analysis
-    - [ ] Provide tools for time series data analysis, including trend analysis and forecasting.
-    - [ ] Implement time series decomposition and visualization.
+**Tabular data**
+- Dataframe creation, editing, merging, sorting, filtering, aggregation
+- Type conversion and random sampling
+- Descriptive statistics and hypothesis testing
+- Interactive charts and plots
 
+## Roadmap
 
-## Genomic Processing
-- [x] Implement function calling to call functions from DNA Tool Kit
-    - [x] Compute the complementary DNA sequence of a given DNA sequence
-    - [x] Implement mRNA transcription
-    - [x] Implement mRNA to protein translation
-    - [x] Count and return the number of nucleotides
-    - [x] Calculate the GC content of a DNA sequence and also calculate the GC content in subsections of the sequence if k is specified
-    - [x] Calculate the total mass of a protein sequence based on amino acid masses
-    - [x] Compute the Hamming distance between two DNA sequences of the same length
-    - [x] Identifiy open reading frames (ORFs) in a DNA sequence and translate them into protein sequences 
-    - [x] Implement restriction site detection
-        - [x] Further it by suggesting respective restriction enzymes
-    - [x] Implement Multiple Sequence Alignment
-    - [x] Generate phylogenetic trees from MSA
-    - [x] 3D Protein Structure Visualization
-    - [x] SNP (Single Nucleotide Polymorphism) detection
-    - [x] Motif Finder 
-    - [ ] Primer Design Automation
-    - [ ] BLAST implementation
-        - [ ] BLASTn
-        - [ ] BLASTp
-        - [ ] BLASTx
-        - [ ] tBLASTn
-        - [ ] tBLASTx
-        - [ ] BLAST2Seq
-    - [ ] Gene Ontology enrichment analysis?
-    - [ ] Allow users to edit the gene sequence
+Not yet implemented: BLAST (BLASTn/p/x, tBLASTn, tBLASTx, BLAST2Seq), primer design
+automation, Gene Ontology enrichment, sequence editing, pivot tables, data
+transposition, export/import across formats.
 
-    ### Long Term Implementations:
-    - [ ] Predict the pathogenicity of genetic variants associated with diseases
-    - [ ] Help users identify potential off-target sites for CRISPR-Cas9 genome editing
-    - [ ] Automatically annotate genetic variants with functional consequences
-    - [ ] Predict interactions between drugs and target proteins based on genomic data
-    - [ ] Calculate allele frequencies of genetic variants within populations or cohorts
-    - [ ] Allow users to perform molecular docking simulations for predicting how small molecules interact with proteins
-    - [ ] Protein-Protein Interaction Prediction: Implement algorithms to predict protein-protein interactions based on protein sequences or structures
-    - [ ] Support analysis of RNA-Seq data, including differential gene expression analysis and transcript quantification
-    - [ ] More storage efficient data structures for nucleotide data solution.
-
+Longer term: variant pathogenicity prediction, CRISPR-Cas9 off-target
+identification, variant functional annotation, drug-target interaction prediction,
+allele frequency computation, molecular docking, protein-protein interaction
+prediction, RNA-Seq differential expression, and more storage-efficient nucleotide
+data structures.
